@@ -9,8 +9,9 @@
 	<h1>红蓝CP生成器</h1>
 	<form name="inp">
 		请输入任意文本以生成对应的红蓝CP：<br />
-		<input type="text" name="seed">
+		<input type="text" name="seed"><br />
 		<button type="button" onclick="generate()">生成！</button>
+		<button type="button" onclick="randGen()">随机一个看看</button>
 	</form>
 	<p id="res"></p>
 
@@ -304,6 +305,22 @@
 	
 	function generate()
 	{
+		document.getElementById("res").innerHTML
+		= genFromSeed(document.forms["inp"]["seed"].value);
+	}
+	
+	function randGen()
+	{
+		var chars = '0123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz';
+		var s = '', len = 10;
+		for (var i = 0; i < len; i++)
+			s += chars.charAt(Math.floor(Math.random()*chars.length));
+		document.forms["inp"]["seed"].value = s;
+		document.getElementById("res").innerHTML = genFromSeed(s);
+	}
+	
+	function genFromSeed(s)
+	{
 		var surnames = ["赵", "钱", "孙", "李", "周", "吴", "郑", "王", "冯", "陈", "卫", 
  						"蒋", "沈", "韩", "杨", "朱", "秦", "许", "何", "吕", "施", "张", "孔", "曹", 
  						"严", "华", "金", "魏", "陶", "姜", "戚", "谢", "邹", "喻", "窦", "章", "苏", 
@@ -384,8 +401,8 @@
 		var wears = [rbw, rgw, bbw, bgw];
 		var rb = ["红", "蓝"];
 		var bg = ["男", "女"];
-		var code1 = bits_md5(document.forms["inp"]["seed"].value + '1');
-		var code2 = bits_md5(document.forms["inp"]["seed"].value + '2');
+		var code1 = bits_md5(s + '1');
+		var code2 = bits_md5(s + '2');
 		var code = code1.concat(code2);
 		var output = '';
 		var bitnum, bit1, bit2, bit3;
@@ -517,8 +534,7 @@
 				char2 += chars2[i];
 				bj = 1;
 			}
-		document.getElementById("res").innerHTML =
-			  '【' + rb[type[1]] + '方】<br />姓名：' + sur1 + name1
+		return ('【' + rb[type[1]] + '方】<br />姓名：' + sur1 + name1
 			+ '<br />性别：' + bg[type[0]] + '<br />生日：' + bir1
 			+ '<br />攻受属性：攻<br />日常穿着：' + wear1 + '<br />'
 			+ hair1 + '性格：' + char1 + '<br />爱好：' + hobby1
@@ -526,10 +542,10 @@
 			+ sur2 + name2 + '<br />性别：' + bg[type[2]]
 			+ '<br />生日：' + bir2 + '<br />攻受属性：受<br />日常穿着：'
 			+ wear2 + '<br />' + hair2 + '性格：' + char2 + '<br />爱好：'
-			+ hobby2;
+			+ hobby2);
 	}
 
-//1
+
 </script>
 
 </body>

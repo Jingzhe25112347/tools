@@ -1,0 +1,536 @@
+<!DOCTYPE html>
+<html>
+<head> 
+<meta charset="utf-8"> 
+<meta name="viewport" content="width=device-width, initial-scale=1.0, minimum-scale=0.5, maximum-scale=2.0, user-scalable=yes" />
+<title>红蓝CP生成器</title> 
+</head>
+<body>
+	<h1>红蓝CP生成器</h1>
+	<form name="inp">
+		请输入任意文本以生成对应的红蓝CP：<br />
+		<input type="text" name="seed">
+		<button type="button" onclick="generate()">生成！</button>
+	</form>
+	<p id="res"></p>
+
+<script>
+	
+	var hexcase = 1;
+	var b64pad = "";
+	var chrsz = 8;
+	var mode = 32; //模式选择 (16为16位的加密 32 为32位的加密)
+	function preprocess(form)
+	{
+		var str = "";
+		str += form.verifycode.value;
+		str = str.toUpperCase();
+		form.p.value = md5(md5_3(form.p.value)+str);
+		return true;
+	}
+	function md5_3(s)
+	{
+		var tmp = new Array;
+		tmp = core_md5(str2binl(s), s.length * chrsz);
+		tmp = core_md5(tmp, 16 * chrsz);
+		tmp = core_md5(tmp, 16 * chrsz);
+		return binl2hex(tmp);
+	}
+	function md5(s)
+	{
+		return hex_md5(s);
+	}
+	function hex_md5(s)
+	{
+		return binl2hex(core_md5(str2binl(s), s.length * chrsz));
+	}
+	function bits_md5(s)
+	{
+		return hex2bits(hex_md5(s));
+	}
+	function b64_md5(s)
+	{
+		return binl2b64(core_md5(str2binl(s), s.length * chrsz));
+	}
+	function str_md5(s)
+	{
+		return binl2str(core_md5(str2binl(s), s.length * chrsz));
+	}
+	function hex_hmac_md5(key, data)
+	{
+		return binl2hex(core_hmac_md5(key, data));
+	}
+	function b64_hmac_md5(key, data)
+	{
+		return binl2b64(core_hmac_md5(key, data));
+	}
+	function str_hmac_md5(key, data)
+	{
+		return binl2str(core_hmac_md5(key, data));
+	}
+	function md5_vm_test()
+	{
+		return hex_md5("abc") == "900150983cd24fb0d6963f7d28e17f72";
+	}
+	function core_md5(x, len)
+	{
+		x[len >> 5] |= 0x80 << ((len) % 32);
+		x[(((len + 64) >>> 9) << 4) + 14] = len;
+		var a = 1732584193;
+		var b = - 271733879;
+		var c = - 1732584194;
+		var d = 271733878;
+		for (var i = 0; i < x.length; i += 16)
+		{
+			var olda = a;
+			var oldb = b;
+			var oldc = c;
+			var oldd = d;
+			a = md5_ff(a, b, c, d, x[i + 0], 7, - 680876936);
+			d = md5_ff(d, a, b, c, x[i + 1], 12, - 389564586);
+			c = md5_ff(c, d, a, b, x[i + 2], 17, 606105819);
+			b = md5_ff(b, c, d, a, x[i + 3], 22, - 1044525330);
+			a = md5_ff(a, b, c, d, x[i + 4], 7, - 176418897);
+			d = md5_ff(d, a, b, c, x[i + 5], 12, 1200080426);
+			c = md5_ff(c, d, a, b, x[i + 6], 17, - 1473231341);
+			b = md5_ff(b, c, d, a, x[i + 7], 22, - 45705983);
+			a = md5_ff(a, b, c, d, x[i + 8], 7, 1770035416);
+			d = md5_ff(d, a, b, c, x[i + 9], 12, - 1958414417);
+			c = md5_ff(c, d, a, b, x[i + 10], 17, - 42063);
+			b = md5_ff(b, c, d, a, x[i + 11], 22, - 1990404162);
+			a = md5_ff(a, b, c, d, x[i + 12], 7, 1804603682);
+			d = md5_ff(d, a, b, c, x[i + 13], 12, - 40341101);
+			c = md5_ff(c, d, a, b, x[i + 14], 17, - 1502002290);
+			b = md5_ff(b, c, d, a, x[i + 15], 22, 1236535329);
+			a = md5_gg(a, b, c, d, x[i + 1], 5, - 165796510);
+			d = md5_gg(d, a, b, c, x[i + 6], 9, - 1069501632);
+			c = md5_gg(c, d, a, b, x[i + 11], 14, 643717713);
+			b = md5_gg(b, c, d, a, x[i + 0], 20, - 373897302);
+			a = md5_gg(a, b, c, d, x[i + 5], 5, - 701558691);
+			d = md5_gg(d, a, b, c, x[i + 10], 9, 38016083);
+			c = md5_gg(c, d, a, b, x[i + 15], 14, - 660478335);
+			b = md5_gg(b, c, d, a, x[i + 4], 20, - 405537848);
+			a = md5_gg(a, b, c, d, x[i + 9], 5, 568446438);
+			d = md5_gg(d, a, b, c, x[i + 14], 9, - 1019803690);
+			c = md5_gg(c, d, a, b, x[i + 3], 14, - 187363961);
+			b = md5_gg(b, c, d, a, x[i + 8], 20, 1163531501);
+			a = md5_gg(a, b, c, d, x[i + 13], 5, - 1444681467);
+			d = md5_gg(d, a, b, c, x[i + 2], 9, - 51403784);
+			c = md5_gg(c, d, a, b, x[i + 7], 14, 1735328473);
+			b = md5_gg(b, c, d, a, x[i + 12], 20, - 1926607734);
+			a = md5_hh(a, b, c, d, x[i + 5], 4, - 378558);
+			d = md5_hh(d, a, b, c, x[i + 8], 11, - 2022574463);
+			c = md5_hh(c, d, a, b, x[i + 11], 16, 1839030562);
+			b = md5_hh(b, c, d, a, x[i + 14], 23, - 35309556);
+			a = md5_hh(a, b, c, d, x[i + 1], 4, - 1530992060);
+			d = md5_hh(d, a, b, c, x[i + 4], 11, 1272893353);
+			c = md5_hh(c, d, a, b, x[i + 7], 16, - 155497632);
+			b = md5_hh(b, c, d, a, x[i + 10], 23, - 1094730640);
+			a = md5_hh(a, b, c, d, x[i + 13], 4, 681279174);
+			d = md5_hh(d, a, b, c, x[i + 0], 11, - 358537222);
+			c = md5_hh(c, d, a, b, x[i + 3], 16, - 722521979);
+			b = md5_hh(b, c, d, a, x[i + 6], 23, 76029189);
+			a = md5_hh(a, b, c, d, x[i + 9], 4, - 640364487);
+			d = md5_hh(d, a, b, c, x[i + 12], 11, - 421815835);
+			c = md5_hh(c, d, a, b, x[i + 15], 16, 530742520);
+			b = md5_hh(b, c, d, a, x[i + 2], 23, - 995338651);
+			a = md5_ii(a, b, c, d, x[i + 0], 6, - 198630844);
+			d = md5_ii(d, a, b, c, x[i + 7], 10, 1126891415);
+			c = md5_ii(c, d, a, b, x[i + 14], 15, - 1416354905);
+			b = md5_ii(b, c, d, a, x[i + 5], 21, - 57434055);
+			a = md5_ii(a, b, c, d, x[i + 12], 6, 1700485571);
+			d = md5_ii(d, a, b, c, x[i + 3], 10, - 1894986606);
+			c = md5_ii(c, d, a, b, x[i + 10], 15, - 1051523);
+			b = md5_ii(b, c, d, a, x[i + 1], 21, - 2054922799);
+			a = md5_ii(a, b, c, d, x[i + 8], 6, 1873313359);
+			d = md5_ii(d, a, b, c, x[i + 15], 10, - 30611744);
+			c = md5_ii(c, d, a, b, x[i + 6], 15, - 1560198380);
+			b = md5_ii(b, c, d, a, x[i + 13], 21, 1309151649);
+			a = md5_ii(a, b, c, d, x[i + 4], 6, - 145523070);
+			d = md5_ii(d, a, b, c, x[i + 11], 10, - 1120210379);
+			c = md5_ii(c, d, a, b, x[i + 2], 15, 718787259);
+			b = md5_ii(b, c, d, a, x[i + 9], 21, - 343485551);
+			a = safe_add(a, olda);
+			b = safe_add(b, oldb);
+			c = safe_add(c, oldc);
+			d = safe_add(d, oldd);
+		}
+		if (mode == 16)
+		{
+			return Array(b, c);
+		}
+		else
+		{
+			return Array(a, b, c, d);
+		}
+	}
+	function md5_cmn(q, a, b, x, s, t)
+	{
+		return safe_add(bit_rol(safe_add(safe_add(a, q), safe_add(x, t)), s), b);
+	}
+	function md5_ff(a, b, c, d, x, s, t)
+	{
+		return md5_cmn((b & c) | ((~b) & d), a, b, x, s, t);
+	}
+	function md5_gg(a, b, c, d, x, s, t)
+	{
+		return md5_cmn((b & d) | (c & (~d)), a, b, x, s, t);
+	}
+	function md5_hh(a, b, c, d, x, s, t)
+	{
+		return md5_cmn(b ^ c ^ d, a, b, x, s, t);
+	}
+	function md5_ii(a, b, c, d, x, s, t)
+	{
+		return md5_cmn(c ^ (b | (~d)), a, b, x, s, t);
+	}
+	function core_hmac_md5(key, data)
+	{
+		var bkey = str2binl(key);
+		if (bkey.length > 16)
+		bkey = core_md5(bkey, key.length * chrsz);
+		var ipad = Array(16), opad = Array(16);
+		for (var i = 0; i < 16; i++)
+		{
+			ipad[i] = bkey[i] ^ 0x36363636;
+			opad[i] = bkey[i] ^ 0x5C5C5C5C;
+		}
+		var hash = core_md5(ipad.concat(str2binl(data)), 512+data.length * chrsz);
+		return core_md5(opad.concat(hash), 512+128);
+	}
+	function safe_add(x, y)
+	{
+		var lsw = (x & 0xFFFF) + (y & 0xFFFF);
+		var msw = (x >> 16) + (y >> 16) + (lsw >> 16);
+		return (msw << 16) | (lsw & 0xFFFF);
+	}
+	function bit_rol(num, cnt)
+	{
+		return (num << cnt) | (num >>> (32-cnt));
+	}
+	function str2binl(str)
+	{
+		var bin = Array();
+		var mask = (1 << chrsz) - 1;
+		for (var i = 0; i < str.length * chrsz; i += chrsz)
+		bin[i >> 5] |= (str.charCodeAt(i / chrsz) & mask) << (i % 32);
+		return bin;
+	}
+	function binl2str(bin)
+	{
+		var str = "";
+		var mask = (1 << chrsz) - 1;
+		for (var i = 0; i < bin.length * 32; i += chrsz)
+		str += String.fromCharCode((bin[i >> 5] >>> (i % 32)) & mask);
+		return str;
+	}
+	function binl2hex(binarray)
+	{
+		var hex_tab = hexcase ? "0123456789ABCDEF" : "0123456789abcdef";
+		var str = "";
+		for (var i = 0; i < binarray.length * 4; i++)
+		{
+			str += hex_tab.charAt((binarray[i >> 2] >> ((i % 4) * 8+4)) & 0xF) +
+			hex_tab.charAt((binarray[i >> 2] >> ((i % 4) * 8)) & 0xF);
+		}
+		return str;
+	}
+	function binl2b64(binarray)
+	{
+		var tab = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
+		var str = "";
+		for (var i = 0; i < binarray.length * 4; i += 3)
+		{
+			var triplet = (((binarray[i >> 2] >> 8 * (i % 4)) & 0xFF) << 16) | ((
+			(binarray[i + 1 >> 2] >> 8 * ((i + 1) % 4)) & 0xFF) << 8) | ((binarray[i+ 2 >> 2] >> 8 * ((i + 2) % 4)) & 0xFF);
+			for (var j = 0; j < 4; j++)
+			{
+			if (i * 8+j * 6 > binarray.length * 32)
+				str += b64pad;
+			else
+				str += tab.charAt((triplet >> 6 * (3-j)) & 0x3F);
+			}
+		}
+		return str;
+	}
+	function hex2bits(str)
+	{
+		var bits = Array();
+		var tmp;
+		for (var i = 0; i < mode; i++)
+		{
+			tmp = str.charCodeAt(i);
+			if (tmp < 64)
+				bits[i] = tmp - 48;
+			else
+				bits[i] = tmp - 55;
+		}
+		return bits;
+	}
+	
+	function isLeap(y)
+	{
+		return ((y % 4 == 0 && y % 100 != 0) || y % 400 == 0);
+	}
+	
+	function dateAfter(n)
+	{
+		var mn = [0, 31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31];
+		var y = 1994, m = 1, d = 270 + n, yn = 365;
+		while (d > yn)
+		{
+			y++;
+			d -= yn;
+			if (isLeap(y))
+				yn = 366;
+			else
+				yn = 365;
+		}
+		if (isLeap(y))
+			mn[2] = 29;
+		while (d > mn[m])
+		{
+			d -= mn[m];
+			m++;
+		}
+		return [y, m, d];
+	}
+	
+	function dateString(n)
+	{
+		var a = dateAfter(n);
+		return (a[0].toString() + '年' + a[1].toString() + '月' + a[2].toString() + '日');
+	}
+	
+	function generate()
+	{
+		var surnames = ["赵", "钱", "孙", "李", "周", "吴", "郑", "王", "冯", "陈", "卫", 
+ 						"蒋", "沈", "韩", "杨", "朱", "秦", "许", "何", "吕", "施", "张", "孔", "曹", 
+ 						"严", "华", "金", "魏", "陶", "姜", "戚", "谢", "邹", "喻", "窦", "章", "苏", 
+ 	 					"潘", "葛", "范", "彭", "郎", "鲁", "韦", "马", "方", "俞", "任", "袁", "柳", 
+ 						"鲍", "史", "唐", "费", "岑", "薛", "雷", "贺", "倪", "汤", "殷", "罗", "毕", 
+ 						"郝", "邬", "安", "常", "乐", "于", "时", "傅", "卞", "齐", "康", "伍", "余", 
+  						"顾", "孟", "黄", "穆", "萧", "尹", "姚", "邵", "汪", "祁", "毛", "明", "臧", 
+ 						"伏", "成", "戴", "宋", "茅", "庞", "熊", "纪", "舒", "屈", "项", "祝", "董", 
+ 						"梁", "杜", "阮", "蓝", "闵", "席", "季", "贾", "路", "娄", "江", "童", "颜", 
+ 						"郭", "梅", "林", "刁", "钟", "徐", "邱", "骆", "高", "夏", "蔡", "田", "樊", 
+ 						"胡", "凌", "霍", "万", "柯", "管", "卢", "莫", "房", "解", "应", "丁", "邓", 
+   						"单", "洪", "包", "左", "石", "崔", "钮", "龚", "程", "邢", "裴", "陆", "荀", 
+   						"羊", "甄", "麴", "封", "靳", "糜", "段", "巫", "乌", "焦", "车", "侯", "班", 
+   						"伊", "宫", "宁", "仇", "栾", "甘", "祖", "武", "刘", "詹", "龙", "叶", "司", 
+   						"黎", "薄", "白", "蒲", "赖", "卓", "屠", "乔", "胥", "翟", "谭", "劳", "逄", 
+   						"姬", "申", "冉", "郦", "桂", "牛", "边", "尚", "农", "温", "庄", "晏", "柴", 
+   						"瞿", "阎", "连", "艾", "容", "向", "易", "戈", "廖", "庾", "步", "耿", "满", 
+   						"匡", "文", "寇", "巩", "聂", "晁", "冷", "辛", "阚", "简", "饶", "曾", "沙", 
+   						"鞠", "关", "蒯", "荆", "游", "竺", "桓", "司马", "欧阳", "夏侯", "诸葛", "令狐", 
+   						"宇文", "慕容", "涂", "百里", "岳", "西门", "牟", "佘", "南宫", "墨", "佟", "言"];
+		var girls = ["丹", "丽", "仪", "佩", "依", "倩", "兰", "冰", "凝", "卉", "可", "君", "妍", 
+					 "妤", "姗", "姝", "娜", "娴", "婉", "婕", "婧", "婵", "婷", "媛", "嫣", "安", "宛", 
+					 "宜", "岚", "彤", "心", "思", "怡", "恬", "悦", "惠", "慧", "敏", "昕", "晓", "晨", 
+					 "晴", "晶", "曼", "月", "柔", "桐", "梦", "楠", "欣", "歆", "洁", "涵", "清", "滢", 
+					 "灵", "燕", "玉", "玥", "玲", "珂", "珊", "珍", "珏", "珠", "珺", "琛", "琦", "琪", 
+					 "琰", "琳", "琴", "琼", "瑛", "瑜", "瑞", "瑶", "瑾", "璇", "璐", "璟", "盈", "竹", 
+					 "筱", "素", "紫", "羽", "舒", "艳", "艺", "芬", "芳", "芸", "苇", "茜", "茵", "荃", 
+					 "莉", "莹", "菁", "菡", "菲", "萌", "萍", "萱", "蓉", "蔓", "蕊", "蕙", "蕾", "薇", 
+					 "虹", "言", "诗", "钰", "雁", "雅", "雨", "雪", "雯", "霏", "霖", "霞", "青", "静", 
+					 "韵", "颖", "馨"];
+		var boys = ["伟", "勇", "军", "磊", "涛", "斌", "强", "鹏", "杰", "峰", "超", "辉", 
+					"刚", "健", "明", "亮", "俊", "凯", "浩", "平", "毅", "宇", "兵", "锋", "彬", 
+					"翔", "剑", "东", "博", "威", "巍", "炜", "成", "昊", "宏", "坤", "锐", "骏", 
+					"栋", "帆", "立", "哲", "光", "坚", "振", "祥", "星", "政", "智", "永", "康", 
+					"诚", "志", "睿", "捷", "森", "洪", "科", "铭", "航", "鸣", "源", "聪", "雄", 
+					"川", "义", "皓", "达", "民", "兴", "正", "韬", "硕", "远", "煜", "权", "钧", 
+					"彦", "峥", "烨", "铮", "卓", "昱", "盛", "谦", "耀", "晟", "豪", "鸿", "泽", 
+					"渊", "广", "恺", "元", "锦", "奕", "德", "轩", "祺", "钦", "锴", "展", "灏", 
+					"劲", "屹", "贤", "滔", "逸", "伦", "霆", "仁", "瀚", "泓", "易", "淳", "友", 
+					"高", "润", "熠", "锟", "信", "同", "楷", "翰", "宗", "深", "律", "丞"];
+		var rbw = ["大红色T恤", "大红色T恤", "骚粉色T恤", "深红色T恤", "橘红色T恤", "红色格子衬衫", "红色衬衫", 
+				   "红色衬衫", "深红色衬衫", "暗红色西装", "深红色西装", "红色西装", "红色Polo衫", "红色Polo衫", 
+				   "红色兜帽衫", "红色毛衣"];
+		var rgw = ["大红色T恤", "粉色T恤", "橘红色T恤", "红色格子衬衫", "红色格子衬衫", "红色衬衫", "粉色衬衫", 
+				   "红色西装", "粉色西装", "红色兜帽衫", "红色毛衣", "红色JK制服",
+				   "粉色lo裙", "红色连衣裙", "粉色连衣裙", "粉红色睡衣"];
+		var bbw = ["宝蓝色T恤", "宝蓝色T恤", "宝蓝色T恤", "天蓝色T恤", "深蓝色T恤", "深蓝色T恤", "蓝色运动外套",
+				   "蓝色运动外套", "蓝色运动外套", "蓝色运动外套", "蓝色兜帽衫", "蓝色兜帽衫", "浅蓝色毛衣", 
+				   "宝蓝色毛衣", "蓝色校服外套", "蓝色校服外套"];
+		var bgw = ["宝蓝色T恤", "宝蓝色T恤", "天蓝色T恤", "深蓝色T恤", "蓝色运动外套", "蓝色运动外套", 
+				   "宝蓝色连衣裙", "宝蓝色连衣裙", "天蓝色连衣裙", "蓝色毛衣", "蓝色兜帽衫", "蓝色校服外套",
+				   "宝蓝色肩带裙", "宝蓝色肩带裙", "蓝色水手服", "蓝色死库水"];
+		var wear = [rbw, rgw, bbw, bgw];
+		var hair = ["高马尾", "高马尾", "低马尾", "低马尾", "披肩长发", "披肩长发", "披肩长发", "披肩长发", 
+					"披肩长发", "蘑菇头", "蘑菇头", "蘑菇头", "高双马尾", "低双马尾", "长卷发", "短卷发"];
+		var hobby =
+				   ["读书", "历史", "地理", "人文", "数学", "物理", "化学", "单机", "水群", "电影", "猫猫", 
+					"狗狗", "音乐", "画画", "编曲", "编程", "解谜", "钢琴", "吉他", "聚会", "实验", "冒险", 
+					"旅游", "登山", "脑洞", "天文", "做菜", "跑步", "篮球", "足球", "排球", "乒乓", "健身", 
+					"动漫", "动画", "漫画", "汉服", "甜品", "零食", "烧烤", "聊天", "睡觉", "花草", "做图", 
+					"出谜", "多肉", "茶道", "灯谜", "集邮", "攀岩", "桌游", "王者", "手游", "沙盒", "写文", 
+					"狼人", "网球", "钓鱼", "幽默", "看海", "出行", "家务", "唱歌", "跳舞"];
+		var charac = [["温和平静", "暴躁易怒"], ["乐观主义", "悲观主义"], ["喜欢主动", "喜欢被动"],
+					  ["话特别多", "不爱说话"], ["灵活变通", "固执保守"], ["现实主义", "充满梦想"], 
+					  ["情感丰富", "情感淡漠"], ["随遇而安", "完美主义"]];
+		var types = [[0, 0, 1, 1, 0], [0, 0, 1, 1, 1], [1, 1, 0, 0, 0], [1, 1, 0, 0, 1],
+					 [1, 0, 0, 1, 0], [1, 0, 0, 1, 1], [0, 1, 1, 0, 0], [0, 1, 1, 0, 1],
+					 [0, 0, 0, 1, 0], [0, 0, 0, 1, 1], [0, 1, 0, 0, 0], [0, 1, 0, 0, 1],
+					 [1, 0, 1, 1, 0], [1, 0, 1, 1, 1], [1, 1, 1, 0, 0], [1, 1, 1, 0, 1]];
+		var typeweight = [32, 12, 24, 12, 48, 24, 32, 8, 6, 3, 5, 2, 16, 12, 12, 8];
+		var taketype = Array();
+		var ii, jj;
+		for (ii = 0; ii < typeweight.length; ii++)
+		{
+			for (jj = 0; jj < typeweight[ii]; jj++)
+				taketype.push(types[ii]);
+		}
+		var wears = [rbw, rgw, bbw, bgw];
+		var rb = ["红", "蓝"];
+		var bg = ["男", "女"];
+		var code1 = bits_md5(document.forms["inp"]["seed"].value + '1');
+		var code2 = bits_md5(document.forms["inp"]["seed"].value + '2');
+		var code = code1.concat(code2);
+		var output = '';
+		var bitnum, bit1, bit2, bit3;
+		var type = taketype[code[0] << 4 | code[1]];
+		var sur1 = surnames[code[2] << 4 | code[3]];
+		var sur2 = surnames[code[4] << 4 | code[5]];
+		bitnum = code[6] << 12 | code[7] << 8 | code[8] << 4 | code[9];
+		bit1 = bitnum >> 14;
+		bit2 = (bitnum >> 7) & 127;
+		bit3 = bitnum & 127;
+		var name1;
+		if (type[0] == 0)
+		{
+			if (bit1 == 0)
+				name1 = boys[bit3];
+			else
+				name1 = boys[bit2] + boys[bit3];
+		}
+		else
+		{
+			if (bit1 == 0)
+				name1 = girls[bit3];
+			else
+				name1 = girls[bit2] + girls[bit3];
+		}
+		bitnum = code[10] << 12 | code[11] << 8 | code[12] << 4 | code[13];
+		bit1 = bitnum >> 14;
+		bit2 = (bitnum >> 7) & 127;
+		bit3 = bitnum & 127;
+		var name2;
+		if (type[2] == 0)
+		{
+			if (bit1 == 0)
+				name2 = boys[bit3];
+			else
+				name2 = boys[bit2] + boys[bit3];
+		}
+		else
+		{
+			if (bit1 == 0)
+				name2 = girls[bit3];
+			else
+				name2 = girls[bit2] + girls[bit3];
+		}
+		bitnum = code[14];
+		for (var kk = 15; kk <= 19; kk++)
+			bitnum = bitnum << 4 | code[kk];
+		bit2 = (bitnum >> 11) & 2047;
+		bit3 = bitnum & 2047;
+		var d1 = bit2 + bit3;
+		bitnum = code[20];
+		for (var kk = 21; kk <= 25; kk++)
+			bitnum = bitnum << 4 | code[kk];
+		bit2 = (bitnum >> 11) & 2047;
+		bit3 = bitnum & 2047;
+		var d2 = bit2 + bit3, dt;
+		if ((type[4] == 0 && d1 > d2) || (type[4] == 1 && d1 < d2))
+		{
+			dt = d1;
+			d1 = d2;
+			d2 = dt;
+		}
+		var bir1 = dateString(d1);
+		var bir2 = dateString(d2);
+		var wear = type[0] + type[1] * 2;
+		var wear1 = wears[wear][code[26]];
+		wear = type[2] + type[3] * 2;
+		var wear2 = wears[wear][code[27]];
+		var hair1 = '发型：' + hair[code[28]] + '<br />';
+		if (type[0] == 0)
+			hair1 = '';
+		var hair2 = '发型：' + hair[code[29]] + '<br />';
+		if (type[2] == 0)
+			hair2 = '';
+		bitnum = code[30] << 8 | code[31] << 4 | code[32];
+		bit1 = bitnum >> 6;
+		bit2 = bitnum & 63;
+		if (bit1 == bit2)
+			var hobby1 = hobby[bit1];
+		else
+			var hobby1 = hobby[bit1] + '，' + hobby[bit2];
+		bitnum = code[33] << 8 | code[34] << 4 | code[35];
+		bit1 = bitnum >> 6;
+		bit2 = bitnum & 63;
+		if (bit1 == bit2)
+			var hobby2 = hobby[bit1];
+		else
+			var hobby2 = hobby[bit1] + '，' + hobby[bit2];
+		var chars1 = Array(), chars2 = Array();
+		bitnum = code[36] << 4 | code[37];
+		for (var i = 0; i < 8; i++)
+			chars1[i] = charac[i][bitnum >> (7-i) & 1];
+		bitnum = code[38] << 4 | code[39];
+		for (var i = 0; i < 8; i++)
+			chars2[i] = charac[i][bitnum >> (7-i) & 1];
+		bitnum = code[40] << 8 | code[41] << 4 | code[42];
+		bit1 = bitnum >> 9 & 7;
+		bit2 = bitnum >> 6 & 7;
+		bit3 = bitnum >> 3 & 7;
+		var isTaken = [0, 0, 0, 0, 0, 0, 0, 0];
+		isTaken[bit1] = 1;
+		isTaken[bit2] = 1;
+		isTaken[bit3] = 1;
+		var bj = 0;
+		var char1 = '';
+		for (i = 0; i < 8; i++)
+			if (isTaken[i] == 1)
+			{
+				if (bj == 1)
+					char1 += '，';
+				char1 += chars1[i];
+				bj = 1;
+			}
+		bitnum = code[43] << 8 | code[44] << 4 | code[45];
+		bit1 = bitnum >> 9 & 7;
+		bit2 = bitnum >> 6 & 7;
+		bit3 = bitnum >> 3 & 7;
+		isTaken = [0, 0, 0, 0, 0, 0, 0, 0];
+		isTaken[bit1] = 1;
+		isTaken[bit2] = 1;
+		isTaken[bit3] = 1;
+		bj = 0;
+		var char2 = '';
+		for (i = 0; i < 8; i++)
+			if (isTaken[i] == 1)
+			{
+				if (bj == 1)
+					char2 += '，';
+				char2 += chars2[i];
+				bj = 1;
+			}
+		document.getElementById("res").innerHTML =
+			  '【' + rb[type[1]] + '方】<br />姓名：' + sur1 + name1
+			+ '<br />性别：' + bg[type[0]] + '<br />生日：' + bir1
+			+ '<br />攻受属性：攻<br />日常穿着：' + wear1 + '<br />'
+			+ hair1 + '性格：' + char1 + '<br />爱好：' + hobby1
+			+ '<br /><br />【' + rb[type[3]] + '方】<br />姓名：'
+			+ sur2 + name2 + '<br />性别：' + bg[type[2]]
+			+ '<br />生日：' + bir2 + '<br />攻受属性：受<br />日常穿着：'
+			+ wear2 + '<br />' + hair2 + '性格：' + char2 + '<br />爱好：'
+			+ hobby2;
+	}
+
+
+</script>
+
+</body>
+</html>
